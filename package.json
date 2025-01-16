@@ -6,12 +6,13 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "bon run build:client && npm run build:server",
-    "build:client": "vue-tsc -p tsconfig.client.json --noEmit && NODE_ENV-production vite build --outDir build/client",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vue-tsc -p tsconfig.client.json --noEmit && NODE_ENV=production vite build --outDir build/client",
     "build:server": "NODE_ENV=production tsc -p ./tsconfig.server.json",
     "dev": "concurrently \"set -a && nodemon\" && \"npm run ts-check:client\"",
     "ts-check:client": "vue-tsc -p ./tsconfig.client.json -- watch --noEmit",
-    "lint": "eslint --fix ."
+    "lint": "eslint --fix .",
+    "preview": "node build/server/main.js"
   },
   "nodemonConfig": {
     "ignore": [

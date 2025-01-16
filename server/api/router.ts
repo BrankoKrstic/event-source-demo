@@ -4,6 +4,7 @@ import EventManager from '../event/manager.js';
 import { FileStorage } from '../event/storage.js';
 import { LedgerOutput, ledgerOutputProcessor } from '../ledger/applyEvent.js';
 import { appendEventFactory, deleteEventFactory, LedgerEvent, rewindEventFactory } from '../ledger/events.js';
+import sendSSEHeaders from '../utils/sendSSEHeaders.js';
 
 const storage = new FileStorage<LedgerEvent>('events.json');
 
@@ -45,17 +46,8 @@ router.post('/ledger/rewind/:id', async (req: Request, res: Response) => {
     }
 });
 
-
-
 const streams = express.Router();
 
-function sendSSEHeaders (res: Response) {
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
-}
 
 streams.get('/ledger', async (_: Request, res: Response) => {
     try {
@@ -78,7 +70,10 @@ async function createApp() {
     const app = express();
     app.use(express.json());
 
-    app.use('/api', router).use('/sse', streams);
+    app
+        .use('/api', router)
+        .use('/sse', streams);
+    
     if (process.env.NODE_ENV === 'production') {
         app.use('/build', express.static('../../build/client'));
     } else {
