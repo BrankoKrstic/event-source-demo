@@ -97,7 +97,6 @@ const connectEventStream = () => {
     source.value = new EventSource('/sse/ledger');
     source.value.addEventListener('message', (e) => {
         loading.value = false;
-        console.log(e.data);
         const data = JSON.parse(e.data);
         items.value = data.ledgerItems;
         events.value = data.eventState;

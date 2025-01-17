@@ -2,15 +2,16 @@
 import { Storage } from './storage.js';
 import { Event } from './event.js';
 import { CommandProcessor } from './commandProcessor.js';
+import { createRepeatable } from '../utils/repeatAsync.js';
 
 export default class EventManager<E extends Event, S extends Storage<E>, Output> {
     private cbs: ((out: Output) => void)[];
-    private output: Output;
-    private events: E[];
+    private output!: Output;
+    private events!: E[];
+    persist: () => Promise<void>;
     constructor(private storage: S, private processor: CommandProcessor<E, Output>) {
         this.cbs = []; 
-        this.events = [];
-        this.output = this.processor.rebuildState(this.events);
+        this.persist =  createRepeatable(() => this.storage.persist(this.events));
         this.loadState();
     }
     async loadState() {

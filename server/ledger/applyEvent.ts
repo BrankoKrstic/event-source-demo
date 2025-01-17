@@ -38,7 +38,7 @@ export const ledgerOutputProcessor: CommandProcessor<LedgerEvent, LedgerOutput> 
         }
     },
     rebuildState (events) {
-        let newState: LedgerOutput = {
+        const newState: LedgerOutput = {
             eventState: events.map(e => ({ id: e.id, active: false, ty: e.ty[0]?.toUpperCase() + e.ty.slice(1), ts: e.ts })),
             ledgerItems: []
         };
@@ -60,8 +60,15 @@ export const ledgerOutputProcessor: CommandProcessor<LedgerEvent, LedgerOutput> 
         // There are no rewinds in the event stack, so it's safe to use applyEvent without creating an infinite loop
         while (eventStack.length) {
             const event = eventStack.pop()!;
-            newState = this.applyEvent(event, newState, []);
+            if (event.ty === 'append') {
+                newState.ledgerItems.push({ id: event.id, content: event.content });
+            } else if (event.ty === 'delete') {
+                newState.ledgerItems = newState.ledgerItems.filter(item => item.id != event.target);
+            } else {
+                const _never: never = event;
+            }
         }
+
         return newState;
     }
 };

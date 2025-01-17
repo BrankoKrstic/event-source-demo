@@ -1,12 +1,14 @@
 import { promises as fsPromises } from 'fs';
 import { Event } from './event.js';
 
+
+// interface of the persistence layer used to store the complete event data
 export type Storage<E extends Event> = {
   persist: (events: E[]) => Promise<void>,
   load: () => Promise<E[]>
 }
 
-
+// local file storage implementation
 export class FileStorage<E extends Event> implements Storage<E> {
     constructor(private path: string) {}
     async persist (events: E[]) {

@@ -12,7 +12,7 @@
     "dev": "concurrently \"set -a && nodemon\" && \"npm run ts-check:client\"",
     "ts-check:client": "vue-tsc -p ./tsconfig.client.json -- watch --noEmit",
     "lint": "eslint --fix .",
-    "preview": "node build/server/main.js"
+    "preview": "NODE_ENV=production node build/server/main.js"
   },
   "nodemonConfig": {
     "ignore": [
@@ -46,7 +46,6 @@
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0",
     "unplugin-fonts": "^1.1.1",
-    "unplugin-vue-components": "^0.27.2",
     "vite": "^6.0.7",
     "vite-plugin-vuetify": "^2.0.4",
     "vue-tsc": "^2.2.0"
