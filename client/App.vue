@@ -14,66 +14,79 @@
                         </v-col>
                     </v-row>
                 </v-form>
-                <v-row class="overflow-x-auto flex-nowrap">
-                    <v-col v-for="event in events" :key="event.id" cols="6" md="3">
-                        <v-card
-                            :color="event.active ? 'primary' : 'secondary'"
-                            variant="elevated"
-                            class="mx-auto"
-                        >
-                            <v-card-item height="100px">
-                                <div>
-                                    <div class="text-overline mb-1">
-                                        {{ event.active ? 'Active' : 'Inactive' }}
-                                    </div>
-                                    <div class="text-h6 mb-1">
-                                        {{ event.ty }} Event
-                                    </div>
-                                    <div class="mb-1">
-                                        Date: {{ new Date(event.ts).toLocaleDateString() }}
-                                    </div>
-                                </div>
-                            </v-card-item>
-
-                            <v-card-actions>
-                                <v-btn @click="handleRewind(event.id)">
-                                    Rewind Event
-                                </v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col cols="12">
-                        <p class="text-medium-emphasis text-center"><em>Rewinding an event restores the state right before the event was applied</em></p>
-                    </v-col>
-                </v-row>
-                <v-row class="overflow-x-auto" style="height: 300px;">
-                    <v-sheet width="100%">
-                        <v-list lines="one">
-                            <v-list-item
-                                v-for="item in items"
-                                :key="item.id || item.content"
-                                color="primary"
-                                variant="plain"
-                                :title="item.content"
+                <div class="d-flex align-center justify-center" v-if="loading">
+                    <v-progress-circular
+                        color="primary"
+                        indeterminate
+                    ></v-progress-circular>
+                </div>
+                <div v-else-if="error">
+                    <p class="error">
+                        Something went wrong, please try again
+                    </p>
+                </div>
+                <div v-else>
+                    <v-row class="overflow-x-auto flex-nowrap">
+                        <v-col v-for="event in events" :key="event.id" cols="6" md="3">
+                            <v-card
+                                :color="event.active ? 'primary' : 'secondary'"
+                                variant="elevated"
+                                class="mx-auto"
                             >
-                                <template v-if="item.id != null" v-slot:append>
-                                    <v-icon  
-                                        class="cursor-pointer"
-                                        @click="deleteItem(item.id)"
-                                        icon="mdi-close">
-                                    </v-icon>
-                                </template>
-                            </v-list-item>
-                        </v-list>
-                    </v-sheet>
-                </v-row>
-                <v-row>
-                    <v-col cols="12">
-                        <p class="text-medium-emphasis text-center"><em>Tip: Try opening the page in a second browser window and changing something</em></p>
-                    </v-col>
-                </v-row>
+                                <v-card-item height="100px">
+                                    <div>
+                                        <div class="text-overline mb-1">
+                                            {{ event.active ? 'Active' : 'Inactive' }}
+                                        </div>
+                                        <div class="text-h6 mb-1">
+                                            {{ event.ty }} Event
+                                        </div>
+                                        <div class="mb-1">
+                                            Date: {{ new Date(event.ts).toLocaleDateString() }}
+                                        </div>
+                                    </div>
+                                </v-card-item>
+    
+                                <v-card-actions>
+                                    <v-btn @click="handleRewind(event.id)">
+                                        Rewind Event
+                                    </v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col cols="12">
+                            <p class="text-medium-emphasis text-center"><em>Rewinding an event restores the state right before the event was applied</em></p>
+                        </v-col>
+                    </v-row>
+                    <v-row class="overflow-x-auto" style="height: 300px;">
+                        <v-sheet width="100%">
+                            <v-list lines="one">
+                                <v-list-item
+                                    v-for="item in items"
+                                    :key="item.id || item.content"
+                                    color="primary"
+                                    variant="plain"
+                                    :title="item.content"
+                                >
+                                    <template v-if="item.id != null" v-slot:append>
+                                        <v-icon  
+                                            class="cursor-pointer"
+                                            @click="deleteItem(item.id)"
+                                            icon="mdi-close">
+                                        </v-icon>
+                                    </template>
+                                </v-list-item>
+                            </v-list>
+                        </v-sheet>
+                    </v-row>
+                    <v-row>
+                        <v-col cols="12">
+                            <p class="text-medium-emphasis text-center"><em>Tip: Try opening the page in a second browser window and changing something</em></p>
+                        </v-col>
+                    </v-row>
+                </div>
             </v-container>
         </v-main>
     </v-app>
@@ -96,14 +109,15 @@ const connectEventStream = () => {
 
     source.value = new EventSource('/sse/ledger');
     source.value.addEventListener('message', (e) => {
-        loading.value = false;
         const data = JSON.parse(e.data);
         items.value = data.ledgerItems;
         events.value = data.eventState;
+        loading.value = false;
     });
 
     source.value.addEventListener('error', (e) => {
         console.error('Something went wrong', e);
+        loading.value = false;
         error.value = true;
     });
 };
@@ -131,3 +145,9 @@ const handleRewind = (id: string) => {
     axios.post(`/api/ledger/rewind/${id}`).catch(() => {});
 };
 </script>
+
+<style scoped>
+.error {
+    color: rgb(170, 21, 21);
+}
+</style>
